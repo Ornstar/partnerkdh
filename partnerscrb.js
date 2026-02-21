@@ -11,24 +11,29 @@
   const RIGHT = 18;
   const UP = 99;
 
-  // Kata yang biasanya muncul jika BELUM login
-  const GUEST_TEXTS = ["Masuk", "Daftar"];
-
   // =====================
   // HELPERS
   // =====================
   const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
 
-  // ✅ Login detector: jika "Masuk/Daftar" masih ada => belum login
+  // ✅ Login detector (lebih akurat):
+  // Anggap SUDAH login jika menemukan salah satu indikator ini di halaman
   const isLoggedIn = () => {
-    const text = (document.body?.innerText || "").toLowerCase();
-    const hasGuest = GUEST_TEXTS.some(t => text.includes(t.toLowerCase()));
-    return !hasGuest;
+    const t = (document.body?.innerText || "").toLowerCase();
+
+    // indikator login (dari screenshot kamu)
+    const hasBalance = t.includes("idr") && /\bidr\s*[\d.,]+/i.test(document.body?.innerText || "");
+    const hasLoyalty = t.includes("loyalty point") || t.includes("lp");
+
+    // indikator kuat lain yang biasanya hanya ada setelah login
+    const hasDepoWd = t.includes("depo/wd") || t.includes("depo wd") || t.includes("depo") && t.includes("wd");
+
+    return hasBalance || hasLoyalty || hasDepoWd;
   };
 
   const removeBtn = () => {
-    const btn = document.getElementById(BTN_ID);
-    if (btn) btn.remove();
+    const el = document.getElementById(BTN_ID);
+    if (el) el.remove();
   };
 
   const ensureCSS = () => {
@@ -61,6 +66,7 @@
         box-shadow:
           0 10px 25px rgba(0,0,0,.28),
           0 0 0 1px rgba(255,255,255,.10) inset;
+
         transform: translateZ(0);
       }
 
@@ -102,10 +108,13 @@
   };
 
   const mount = () => {
-    // hanya mobile + hanya setelah login
+    // hanya mobile
     if (!isMobile()) return removeBtn();
+
+    // hanya setelah login
     if (!isLoggedIn()) return removeBtn();
 
+    // sudah ada
     if (document.getElementById(BTN_ID)) return;
 
     ensureCSS();
@@ -122,17 +131,18 @@
     document.body.appendChild(btn);
   };
 
-  // =====================
-  // INIT + WATCH (biar muncul setelah login tanpa reload)
-  // =====================
   const init = () => {
     mount();
 
     window.addEventListener("resize", mount, { passive: true });
 
-    // pantau perubahan halaman (SPA / login modal)
+    // Pantau perubahan DOM (untuk kasus login tanpa reload)
     const obs = new MutationObserver(() => mount());
     obs.observe(document.documentElement, { childList: true, subtree: true });
+
+    // Backup polling (kalau ada elemen muncul telat)
+    const timer = setInterval(mount, 500);
+    setTimeout(() => clearInterval(timer), 15000); // cukup 15 detik
   };
 
   document.readyState === "loading"
