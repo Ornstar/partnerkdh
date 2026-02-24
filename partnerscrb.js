@@ -1,42 +1,46 @@
 (() => {
   "use strict";
 
-  // =====================
-  // SETTINGS
-  // =====================
+  // ===== SETTINGS =====
   const BTN_ID = "partner-ceria-btn";
   const STYLE_ID = "partner-ceria-style";
   const LINK = "https://goviplink.live/p4st15u5k5es";
 
-  const RIGHT = 18;
-  const UP = 99;
+  // posisi
+  const RIGHT = 18; // px dari kanan
+  const UP = 99;    // px dari bawah
 
-  // =====================
-  // HELPERS
-  // =====================
+  // ===== HELPERS =====
   const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
 
-  // ✅ Login detector (lebih akurat):
-  // Anggap SUDAH login jika menemukan salah satu indikator ini di halaman
+  /**
+   * Deteksi login:
+   * - cocok untuk kasus URL punya "loggedin"
+   * - + fallback kalau ada cookie/token umum
+   * Silakan sesuaikan kalau kamu punya penanda login yang lebih pasti.
+   */
   const isLoggedIn = () => {
-    const t = (document.body?.innerText || "").toLowerCase();
+    const p = (location.pathname || "").toLowerCase();
+    const h = (location.hash || "").toLowerCase();
 
-    // indikator login (dari screenshot kamu)
-    const hasBalance = t.includes("idr") && /\bidr\s*[\d.,]+/i.test(document.body?.innerText || "");
-    const hasLoyalty = t.includes("loyalty point") || t.includes("lp");
+    // 1) dari url
+    if (p.includes("loggedin") || h.includes("loggedin")) return true;
 
-    // indikator kuat lain yang biasanya hanya ada setelah login
-    const hasDepoWd = t.includes("depo/wd") || t.includes("depo wd") || t.includes("depo") && t.includes("wd");
+    // 2) fallback (opsional) - kalau web kamu simpan token di localStorage
+    // ganti key sesuai website kamu kalau ada
+    const ls = window.localStorage;
+    if (!ls) return false;
 
-    return hasBalance || hasLoyalty || hasDepoWd;
+    const maybeToken =
+      ls.getItem("token") ||
+      ls.getItem("authToken") ||
+      ls.getItem("access_token") ||
+      ls.getItem("user");
+
+    return !!maybeToken;
   };
 
-  const removeBtn = () => {
-    const el = document.getElementById(BTN_ID);
-    if (el) el.remove();
-  };
-
-  const ensureCSS = () => {
+  const injectStyle = () => {
     if (document.getElementById(STYLE_ID)) return;
 
     const style = document.createElement("style");
@@ -44,108 +48,112 @@
     style.textContent = `
       #${BTN_ID}{
         position: fixed;
-        right: ${RIGHT}px;
-        bottom: calc(${UP}px + env(safe-area-inset-bottom, 0px));
-        width: 64px;
-        height: 64px;
-        border-radius: 999px;
-        z-index: 999999;
-        display: flex;
+        display: none;
         align-items: center;
         justify-content: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: linear-gradient(135deg,#7c3aed,#4c1d95);
+        border: 1.5px solid rgba(255,255,255,.25);
+        box-shadow: 0 0 14px rgba(124,58,237,.55);
+        z-index: 2147483647;
         text-decoration: none;
+        font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+        letter-spacing: .3px;
         -webkit-tap-highlight-color: transparent;
 
-        background: radial-gradient(circle at 50% 50%,
-          #F7E81B 0 22%,
-          #EA1E24 22% 50%,
-          #39A7C6 50% 76%,
-          #0A0A0A 76% 100%
-        );
-
-        box-shadow:
-          0 10px 25px rgba(0,0,0,.28),
-          0 0 0 1px rgba(255,255,255,.10) inset;
-
-        transform: translateZ(0);
+        left: auto !important;
+        top: auto !important;
       }
 
-      #${BTN_ID} .pc-arrow{
-        width: 30px;
-        height: 30px;
-        border-radius: 999px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 900;
-        font-size: 18px;
-        line-height: 1;
-        color: #0A0A0A;
-        background: rgba(255,255,255,.70);
-        box-shadow: 0 2px 10px rgba(0,0,0,.18);
+      #${BTN_ID} .pc-text{
+        font-size: 11px;
+        font-weight: 800;
+        color: #fff;
+        white-space: nowrap;
+        text-transform: uppercase;
       }
 
       #${BTN_ID} .pc-badge{
         position: absolute;
-        top: -6px;
-        right: -6px;
-        width: 20px;
-        height: 20px;
-        border-radius: 999px;
-        background: #EA1E24;
+        right: -4px;
+        top: -4px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #ff2d55;
         color: #fff;
+        font-size: 11px;
         font-weight: 800;
-        font-size: 12px;
         display: flex;
-        align-items: center;
         justify-content: center;
-        box-shadow: 0 6px 16px rgba(0,0,0,.22);
+        align-items: center;
+        box-shadow: 0 0 6px rgba(0,0,0,.55);
       }
-
-      #${BTN_ID}:active{ transform: scale(.96); }
     `;
     document.head.appendChild(style);
   };
 
-  const mount = () => {
-    // hanya mobile
-    if (!isMobile()) return removeBtn();
-
-    // hanya setelah login
-    if (!isLoggedIn()) return removeBtn();
-
-    // sudah ada
-    if (document.getElementById(BTN_ID)) return;
-
-    ensureCSS();
-
-    const btn = document.createElement("a");
-    btn.id = BTN_ID;
-    btn.href = LINK;
-    btn.target = "_blank";
-    btn.rel = "noopener";
-    btn.innerHTML = `
-      <div class="pc-arrow">➜</div>
-      <div class="pc-badge">1</div>
-    `;
-    document.body.appendChild(btn);
+  const place = (btn) => {
+    btn.style.right = `${RIGHT}px`;
+    btn.style.bottom = `${UP}px`;
+    btn.style.display = "flex";
   };
 
-  const init = () => {
-    mount();
+  const ensureButton = () => {
+    // syarat tampil
+    if (!isMobile() || !isLoggedIn()) return;
 
-    window.addEventListener("resize", mount, { passive: true });
+    let btn = document.getElementById(BTN_ID);
+    if (!btn) {
+      injectStyle();
 
-    // Pantau perubahan DOM (untuk kasus login tanpa reload)
-    const obs = new MutationObserver(() => mount());
-    obs.observe(document.documentElement, { childList: true, subtree: true });
+      btn = document.createElement("a");
+      btn.id = BTN_ID;
+      btn.href = LINK;
+      btn.target = "_blank";
+      btn.rel = "noopener";
 
-    // Backup polling (kalau ada elemen muncul telat)
-    const timer = setInterval(mount, 500);
-    setTimeout(() => clearInterval(timer), 15000); // cukup 15 detik
+      // ✅ TANPA PANAH
+      btn.innerHTML = `
+        <div class="pc-text">PARTNER CERIABET</div>
+        <div class="pc-badge">1</div>
+      `;
+
+      document.body.appendChild(btn);
+    }
+
+    place(btn);
+  };
+
+  const cleanupIfNeeded = () => {
+    const btn = document.getElementById(BTN_ID);
+    if (!btn) return;
+
+    // hapus kalau bukan mobile atau lagi logout
+    if (!isMobile() || !isLoggedIn()) {
+      btn.remove();
+    }
+  };
+
+  const boot = () => {
+    ensureButton();
+    cleanupIfNeeded();
+
+    window.addEventListener("resize", () => {
+      ensureButton();
+      cleanupIfNeeded();
+    });
+
+    // SPA / login tanpa reload
+    setInterval(() => {
+      ensureButton();
+      cleanupIfNeeded();
+    }, 800);
   };
 
   document.readyState === "loading"
-    ? document.addEventListener("DOMContentLoaded", init)
-    : init();
+    ? document.addEventListener("DOMContentLoaded", boot)
+    : boot();
 })();
