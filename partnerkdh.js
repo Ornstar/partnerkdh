@@ -6,9 +6,15 @@
   const STYLE_ID = "partner-ceria-style";
   const LINK = "https://goviplink.live/p4st15u5k5es";
 
+  // ✅ GANTI dengan URL langsung logo kuda (png/webp)
+  const LOGO_URL = "https://i.postimg.cc/nhMTptFv/icon-kh88.webp";
+
   // posisi
   const RIGHT = 18; // px dari kanan
   const UP = 99;    // px dari bawah
+
+  // ✅ ukuran tombol (kecilkan di sini)
+  const SIZE = 56; // contoh: 52 / 56 / 60
 
   // ===== HELPERS =====
   const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
@@ -41,19 +47,23 @@
         position: fixed;
         display: none;
 
-        /* ✅ BULAT (CIRCLE) */
-        width: 72px;
-        height: 72px;
+        width: ${SIZE}px;
+        height: ${SIZE}px;
         border-radius: 50%;
+        overflow: hidden;
 
-        /* ✅ warna glossy (tanpa text) */
-        background: radial-gradient(circle at 50% 30%, #5fffd4, #14b8a6 60%, #0f766e 100%);
-        border: 3px solid rgba(0,0,0,.15);
+        /* ✅ GOLD premium (mirip gambar 2) */
+        background:
+          radial-gradient(circle at 35% 28%, rgba(255,255,255,.65), rgba(255,255,255,0) 42%),
+          radial-gradient(circle at 60% 75%, rgba(255,210,120,.55), rgba(255,210,120,0) 55%),
+          linear-gradient(180deg, #ffe08a 0%, #f3c24a 28%, #c98b12 62%, #7a4a06 100%);
+
+        border: 2px solid rgba(255,232,160,.70);
 
         box-shadow:
-          inset 0 10px 18px rgba(255,255,255,.35),
-          inset 0 -10px 18px rgba(0,0,0,.18),
-          0 10px 25px rgba(0,0,0,.35);
+          inset 0 10px 16px rgba(255,255,255,.28),
+          inset 0 -12px 18px rgba(0,0,0,.22),
+          0 10px 22px rgba(0,0,0,.35);
 
         z-index: 2147483647;
         text-decoration: none;
@@ -62,6 +72,18 @@
 
         left: auto !important;
         top: auto !important;
+      }
+
+      /* ✅ Logo di tengah */
+      #${BTN_ID} .pc-logo{
+        width: 72%;
+        height: 72%;
+        display: block;
+        object-fit: contain;
+        margin: 14%;
+        filter: drop-shadow(0 3px 6px rgba(0,0,0,.35));
+        user-select: none;
+        pointer-events: none;
       }
 
       #${BTN_ID}:active{
@@ -80,7 +102,7 @@
   const place = (btn) => {
     btn.style.right = `${RIGHT}px`;
     btn.style.bottom = `${UP}px`;
-    btn.style.display = "block"; /* circle lebih aman pakai block */
+    btn.style.display = "block";
   };
 
   const ensureButton = () => {
@@ -96,8 +118,8 @@
       btn.target = "_blank";
       btn.rel = "noopener";
 
-      /* ✅ kosong: tanpa text/badge */
-      btn.innerHTML = "";
+      // ✅ logo tengah (tanpa text)
+      btn.innerHTML = `<img class="pc-logo" src="${LOGO_URL}" alt="">`;
 
       document.body.appendChild(btn);
     }
