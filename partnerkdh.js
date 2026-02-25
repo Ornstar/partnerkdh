@@ -1,4 +1,3 @@
-<script>
 (() => {
   "use strict";
 
@@ -11,29 +10,21 @@
   const RIGHT = 18; // px dari kanan
   const UP    = 99; // px dari bawah
 
-  // ===== HELPERS =====
+  // tampil hanya di mobile
   const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
 
-  // Deteksi login (sesuaikan bila perlu)
-  const isLoggedIn = () => {
-    const p = (location.pathname || "").toLowerCase();
-    const h = (location.hash || "").toLowerCase();
+  /**
+   * ✅ PENTING:
+   * Isi selector elemen yang PASTI ada setelah login selesai.
+   * Contoh umum (pilih salah satu yang cocok di web kamu):
+   * - "a[href*='logout']"
+   * - ".user-avatar"
+   * - ".account-menu"
+   * - "#profileMenu"
+   */
+  const LOGIN_READY_SELECTOR = "a[href*='logout'], .user-avatar, .account-menu, #profileMenu";
 
-    // 1) dari url
-    if (p.includes("loggedin") || h.includes("loggedin")) return true;
-
-    // 2) fallback token localStorage
-    const ls = window.localStorage;
-    if (!ls) return false;
-
-    const maybeToken =
-      ls.getItem("token") ||
-      ls.getItem("authToken") ||
-      ls.getItem("access_token") ||
-      ls.getItem("user");
-
-    return !!maybeToken;
-  };
+  const isLoggedIn = () => !!document.querySelector(LOGIN_READY_SELECTOR);
 
   const injectStyle = () => {
     if (document.getElementById(STYLE_ID)) return;
@@ -49,7 +40,6 @@
         height: 72px;
         border-radius: 50%;
 
-        /* glossy green like contoh */
         background: radial-gradient(circle at 50% 30%, #5fffd4, #14b8a6 60%, #0f766e 100%);
         border: 3px solid rgba(0,0,0,.15);
 
@@ -75,58 +65,54 @@
   };
 
   const place = (btn) => {
-    btn.style.right  = `${RIGHT}px`;
+    btn.style.right = `${RIGHT}px`;
     btn.style.bottom = `${UP}px`;
     btn.style.display = "block";
   };
 
-  const ensureButton = () => {
-    if (!isMobile() || !isLoggedIn()) return;
+  const showIfReady = () => {
+    // hanya mobile
+    if (!isMobile()) return hide();
+
+    // hanya setelah login selesai
+    if (!isLoggedIn()) return hide();
 
     let btn = document.getElementById(BTN_ID);
     if (!btn) {
       injectStyle();
-
       btn = document.createElement("a");
       btn.id = BTN_ID;
       btn.href = LINK;
       btn.target = "_blank";
       btn.rel = "noopener";
-
-      // ✅ polos: tanpa text/badge
-      btn.innerHTML = "";
-
+      btn.innerHTML = ""; // polos tanpa text
       document.body.appendChild(btn);
     }
 
     place(btn);
   };
 
-  const cleanupIfNeeded = () => {
+  const hide = () => {
     const btn = document.getElementById(BTN_ID);
-    if (!btn) return;
-
-    if (!isMobile() || !isLoggedIn()) btn.remove();
+    if (btn) btn.remove();
   };
 
   const boot = () => {
-    ensureButton();
-    cleanupIfNeeded();
+    // cek awal
+    showIfReady();
 
-    window.addEventListener("resize", () => {
-      ensureButton();
-      cleanupIfNeeded();
-    });
+    // ✅ Observer: kalau login selesai tanpa reload, tombol tetap bisa muncul
+    const obs = new MutationObserver(() => showIfReady());
+    obs.observe(document.documentElement, { childList: true, subtree: true });
 
-    // SPA / login tanpa reload
-    setInterval(() => {
-      ensureButton();
-      cleanupIfNeeded();
-    }, 800);
+    // fallback ringan
+    setInterval(showIfReady, 1000);
+
+    // resize (mobile/desktop berubah)
+    window.addEventListener("resize", showIfReady);
   };
 
   document.readyState === "loading"
     ? document.addEventListener("DOMContentLoaded", boot)
     : boot();
 })();
-</script>
