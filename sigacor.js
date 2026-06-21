@@ -1,4 +1,4 @@
-() {
+(function () {
     const POPUP_IMAGES = [
         'https://plcl.me/images/uWEtJ.png',
         'https://plcl.me/images/R7Qsn.png',
