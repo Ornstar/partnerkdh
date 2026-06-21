@@ -291,7 +291,7 @@
                     </div>
 
                     <div class="gif-box">
-                        <img src="https://www.image2url.com/r2/default/gifs/1776223877493-c97f6bca-4841-4ea0-ac2d-850033289372.gif">
+                        <img src="https://media.tenor.com/Hm5Hk1U_uVoAAAAd/fifa-world-cup-2026-fifa.gif">
                         <svg viewBox="0 0 100 100">
                             <rect x="2" y="2" width="96" height="96" rx="12" fill="none" stroke="#ffd700" stroke-width="2" stroke-dasharray="20 300">
                                 <animate attributeName="stroke-dashoffset" from="0" to="-320" dur="2s" repeatCount="indefinite"/>
